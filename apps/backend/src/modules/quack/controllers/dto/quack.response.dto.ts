@@ -1,5 +1,5 @@
-import { Quack } from '@/modules/quack/domain/quack';
-import { ApiProperty } from '@nestjs/swagger';
+import { Quack, QuackMood } from '@/modules/quack/domain/quack';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 class QuackUserDto {
   @ApiProperty()
@@ -19,6 +19,9 @@ export class QuackResponseDto {
   @ApiProperty()
   text!: string;
 
+  @ApiPropertyOptional({ enum: ['happy', 'sad', 'angry', 'silly'] })
+  mood?: QuackMood;
+
   @ApiProperty()
   userId!: string;
 
@@ -37,6 +40,7 @@ export class QuackResponseDto {
     return {
       id: quack.id,
       text: quack.text,
+      mood: quack.mood,
       userId: quack.userId,
       createdAt: quack.createdAt,
       user: {
