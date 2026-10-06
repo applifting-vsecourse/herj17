@@ -31,3 +31,7 @@ The CLI puts `shadow-xs`/`shadow-sm` on inputs, textareas and cards. [`DESIGN.md
 Assume the dev servers are up. If something is listening on the app's ports, that is this application: use it. Don't start a second instance, don't restart it, don't run `pnpm dev`.
 
 Don't reach for the browser to check your own work. Tests and type-checks are the evidence; open the running app when asked to, not on your own initiative.
+
+### Run ESLint after every story implementation
+
+After finishing a story implementation, always run `pnpm frontend lint:check` and `pnpm backend lint:check`. Fix all errors before stopping. Do not hand the work back to the user with a lint failure outstanding.
