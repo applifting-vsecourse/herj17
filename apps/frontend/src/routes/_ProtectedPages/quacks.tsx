@@ -1,6 +1,6 @@
+import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
-import { useState } from "react"
 
 import { Seo } from "@/components/Seo"
 import { Input } from "@/components/ui/input"
@@ -22,9 +22,7 @@ function QuacksPage() {
   const needle = search.trim().toLowerCase()
   const visibleQuacks = needle
     ? allQuacks.filter(
-        (q) =>
-          q.text.toLowerCase().includes(needle) ||
-          q.user.name.toLowerCase().includes(needle),
+        (q) => q.text.toLowerCase().includes(needle) || q.user.name.toLowerCase().includes(needle),
       )
     : allQuacks
 

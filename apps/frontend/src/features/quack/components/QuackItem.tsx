@@ -37,9 +37,7 @@ export function QuackItem({ quack }: QuackItemProps) {
           </span>
           <span className="text-xs text-muted-foreground">·</span>
           <time className="text-xs text-muted-foreground">{formatDate(quack.createdAt)}</time>
-          {quack.mood ? (
-            <span aria-label={quack.mood}>{MOOD_EMOJI[quack.mood]}</span>
-          ) : null}
+          {quack.mood ? <span aria-label={quack.mood}>{MOOD_EMOJI[quack.mood]}</span> : null}
         </div>
         <p className="text-sm break-words whitespace-pre-line">{quack.text}</p>
       </div>

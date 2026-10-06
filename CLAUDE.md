@@ -32,6 +32,6 @@ Assume the dev servers are up. If something is listening on the app's ports, tha
 
 Don't reach for the browser to check your own work. Tests and type-checks are the evidence; open the running app when asked to, not on your own initiative.
 
-### Run ESLint after every story implementation
+### Run check-all before every handover
 
-After finishing a story implementation, always run `pnpm frontend lint:check` and `pnpm backend lint:check`. Fix all errors before stopping. Do not hand the work back to the user with a lint failure outstanding.
+After finishing a story implementation, always run `pnpm check-all`. Fix every error before stopping — lint, type errors, test failures, and formatting. Do not hand the work back to the user with a failing check-all.

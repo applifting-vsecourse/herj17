@@ -55,10 +55,7 @@ export function QuackForm({ className }: QuackFormProps) {
   const length = text?.length ?? 0
 
   const handleSubmit = (values: FormValues) => {
-    addQuack.mutate(
-      { text: values.text, mood: values.mood },
-      { onSuccess: () => form.reset() },
-    )
+    addQuack.mutate({ text: values.text, mood: values.mood }, { onSuccess: () => form.reset() })
   }
 
   return (
@@ -103,23 +100,21 @@ export function QuackForm({ className }: QuackFormProps) {
                   <ToggleGroup
                     type="single"
                     value={field.value ?? ""}
-                    onValueChange={(val) =>
-                      field.onChange(val === "" ? undefined : val)
-                    }
+                    onValueChange={(val) => field.onChange(val === "" ? undefined : val)}
                     disabled={addQuack.isPending}
                   >
-                    {(Object.entries(MOOD_EMOJI) as [z.infer<typeof quackMoodSchema>, string][]).map(
-                      ([mood, emoji]) => (
-                        <ToggleGroupItem
-                          key={mood}
-                          value={mood}
-                          aria-label={mood}
-                          className="text-base"
-                        >
-                          {emoji}
-                        </ToggleGroupItem>
-                      ),
-                    )}
+                    {(
+                      Object.entries(MOOD_EMOJI) as [z.infer<typeof quackMoodSchema>, string][]
+                    ).map(([mood, emoji]) => (
+                      <ToggleGroupItem
+                        key={mood}
+                        value={mood}
+                        aria-label={mood}
+                        className="text-base"
+                      >
+                        {emoji}
+                      </ToggleGroupItem>
+                    ))}
                   </ToggleGroup>
                 </FormControl>
               </FormItem>
