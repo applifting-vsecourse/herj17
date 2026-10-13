@@ -4,9 +4,12 @@ export type QuackAuthor = {
   username: string;
 };
 
+export type QuackMood = 'happy' | 'sad' | 'angry' | 'silly';
+
 export type Quack = {
   id: string;
   text: string;
+  mood?: QuackMood;
   userId: string;
   createdAt: Date;
   updatedAt: Date;

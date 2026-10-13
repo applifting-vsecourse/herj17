@@ -1,7 +1,10 @@
+import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 
 import { Seo } from "@/components/Seo"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 import { quacksQueryOptions } from "@/features/quack/api/quacksQueryOptions"
 import { QuackForm } from "@/features/quack/components/QuackForm"
@@ -13,6 +16,17 @@ export const Route = createFileRoute("/_ProtectedPages/quacks")({
 
 function QuacksPage() {
   const quacksQuery = useQuery(quacksQueryOptions())
+  const [search, setSearch] = useState("")
+
+  const allQuacks = quacksQuery.data ?? []
+  const needle = search.trim().toLowerCase()
+  const visibleQuacks = needle
+    ? allQuacks.filter(
+        (q) => q.text.toLowerCase().includes(needle) || q.user.name.toLowerCase().includes(needle),
+      )
+    : allQuacks
+
+  const isFeedReady = !quacksQuery.isLoading && !quacksQuery.error
 
   return (
     <>
@@ -22,12 +36,24 @@ function QuacksPage() {
 
         <QuackForm className="mb-4" />
 
+        {isFeedReady ? (
+          <div className="mb-4 space-y-1">
+            <Label htmlFor="quack-search">Search quacks</Label>
+            <Input
+              id="quack-search"
+              type="search"
+              placeholder="Search by content or author…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+        ) : null}
+
         <QuackList
-          quacks={quacksQuery.data ?? []}
+          quacks={visibleQuacks}
           isLoading={quacksQuery.isLoading}
           error={quacksQuery.error ?? undefined}
-          // Only the error state offers a retry — posting invalidates the list,
-          // and refocusing the tab refetches it.
+          isFiltered={needle.length > 0}
           onReload={() => void quacksQuery.refetch()}
         />
       </section>
