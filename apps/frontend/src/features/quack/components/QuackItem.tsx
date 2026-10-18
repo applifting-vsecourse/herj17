@@ -1,16 +1,10 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { formatDate } from "@/lib/date"
+import { MOOD_EMOJI } from "@/lib/moods"
 
-import type { Quack, QuackMood } from "@/features/quack/api/quackSchemas"
+import type { Quack } from "@/features/quack/api/quackSchemas"
 import { UsersName } from "@/features/quack/components/UsersName"
 import { UsersUserName } from "@/features/quack/components/UsersUserName"
-
-const MOOD_EMOJI: Record<QuackMood, string> = {
-  happy: "😊",
-  sad: "😢",
-  angry: "😠",
-  silly: "🤪",
-}
 
 type QuackItemProps = { quack: Quack }
 

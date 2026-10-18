@@ -15,21 +15,15 @@ import {
 } from "@/components/ui/form"
 import { Textarea } from "@/components/ui/textarea"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { MOOD_EMOJI } from "@/lib/moods"
 import { cn } from "@/lib/utils"
 
-import { quackMoodSchema } from "@/features/quack/api/quackSchemas"
+import { quackMoodSchema, type QuackMood } from "@/features/quack/api/quackSchemas"
 import { useAddQuack } from "@/features/quack/hooks/useAddQuack"
 
 // Mirrors the server-side DTO (MaxLength(280)) so the user is told before
 // the request is made — the server still validates independently.
 const MAX_LENGTH = 280
-
-const MOOD_EMOJI: Record<z.infer<typeof quackMoodSchema>, string> = {
-  happy: "😊",
-  sad: "😢",
-  angry: "😠",
-  silly: "🤪",
-}
 
 const schema = z.object({
   text: z
@@ -42,13 +36,17 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>
 
-type QuackFormProps = { className?: string }
+type QuackFormProps = {
+  className?: string
+  // pre-selected mood, from the user's settings
+  defaultMood?: QuackMood
+}
 
-export function QuackForm({ className }: QuackFormProps) {
+export function QuackForm({ className, defaultMood }: QuackFormProps) {
   const addQuack = useAddQuack()
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { text: "", mood: undefined },
+    defaultValues: { text: "", mood: defaultMood },
   })
 
   const text = useWatch({ control: form.control, name: "text" })
@@ -103,9 +101,7 @@ export function QuackForm({ className }: QuackFormProps) {
                     onValueChange={(val) => field.onChange(val === "" ? undefined : val)}
                     disabled={addQuack.isPending}
                   >
-                    {(
-                      Object.entries(MOOD_EMOJI) as [z.infer<typeof quackMoodSchema>, string][]
-                    ).map(([mood, emoji]) => (
+                    {(Object.entries(MOOD_EMOJI) as [QuackMood, string][]).map(([mood, emoji]) => (
                       <ToggleGroupItem
                         key={mood}
                         value={mood}
