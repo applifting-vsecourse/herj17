@@ -1,3 +1,8 @@
+# Explicit project name: compose otherwise names it after the folder ("backend"),
+# and any other repo with an apps/backend compose file would share this
+# container and its data volume.
+name: quacker
+
 services:
   db:
     image: postgres:17-alpine
