@@ -164,6 +164,45 @@ Please stop tagging me.`,
 
   const now = Date.now();
 
+  console.log('Creating example poll');
+
+  const lunchPoll = await prisma.quack.create({
+    data: {
+      text: 'Where do we go for lunch on Friday?',
+      createdAt: new Date(now - 45 * MINUTE_IN_MS),
+      user: { connect: { id: breadCritic.id } },
+      poll: {
+        create: {
+          options: {
+            create: [
+              'The bakery',
+              'Pond-side picnic',
+              'Whatever the swan picks',
+            ].map((text, position) => ({ text, position })),
+          },
+        },
+      },
+    },
+    include: { poll: { include: { options: true } } },
+  });
+
+  const lunchOptions = lunchPoll.poll!.options;
+  const lunchVotes: [User, number][] = [
+    [caffeinatedDuck, 0],
+    [deepDuckThoughts, 1],
+    [migrationSeason, 1],
+    [pondAdmin, 2],
+  ];
+  for (const [voter, optionIndex] of lunchVotes) {
+    await prisma.pollVote.create({
+      data: {
+        pollId: lunchPoll.poll!.id,
+        optionId: lunchOptions[optionIndex].id,
+        userId: voter.id,
+      },
+    });
+  }
+
   for (const { author, minutesAgo, text } of exampleQuacks) {
     await createQuack(prisma, {
       text,

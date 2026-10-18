@@ -13,6 +13,21 @@ export const quackUserSchema = z.object({
 export const quackMoodSchema = z.enum(MOODS)
 export type QuackMood = z.infer<typeof quackMoodSchema>
 
+export const pollOptionSchema = z.object({
+  id: z.string(),
+  text: z.string(),
+  votes: z.number(),
+})
+
+export const pollSchema = z.object({
+  id: z.string(),
+  options: z.array(pollOptionSchema),
+  totalVotes: z.number(),
+  myVoteOptionId: z.string().optional(),
+})
+
+export type Poll = z.infer<typeof pollSchema>
+
 export const quackSchema = z.object({
   id: z.string(),
   text: z.string(),
@@ -20,6 +35,7 @@ export const quackSchema = z.object({
   userId: z.string(),
   createdAt: z.coerce.date(),
   user: quackUserSchema,
+  poll: pollSchema.optional(),
 })
 
 export const quacksSchema = z.array(quackSchema)

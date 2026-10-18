@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Loader2 } from "lucide-react"
-import { useForm, useWatch } from "react-hook-form"
+import { ListChecks, Loader2, Plus, X } from "lucide-react"
+import { useFieldArray, useForm, useWatch } from "react-hook-form"
 import { z } from "zod"
 
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -13,6 +13,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { MOOD_EMOJI } from "@/lib/moods"
@@ -25,14 +26,47 @@ import { useAddQuack } from "@/features/quack/hooks/useAddQuack"
 // the request is made — the server still validates independently.
 const MAX_LENGTH = 280
 
-const schema = z.object({
-  text: z
-    .string()
-    .trim()
-    .min(1, "Write something first")
-    .max(MAX_LENGTH, `Keep it under ${MAX_LENGTH} characters`),
-  mood: quackMoodSchema.optional(),
-})
+// Mirrors CreatePollDto on the server.
+const POLL_MIN_OPTIONS = 2
+const POLL_MAX_OPTIONS = 4
+const POLL_OPTION_MAX_LENGTH = 50
+
+const schema = z
+  .object({
+    text: z
+      .string()
+      .trim()
+      .min(1, "Write something first")
+      .max(MAX_LENGTH, `Keep it under ${MAX_LENGTH} characters`),
+    mood: quackMoodSchema.optional(),
+    // empty = a plain quack; useFieldArray needs objects, hence { text }
+    pollOptions: z
+      .array(
+        z.object({
+          text: z
+            .string()
+            .trim()
+            .min(1, "Write an answer or remove this option")
+            .max(POLL_OPTION_MAX_LENGTH, `Keep it under ${POLL_OPTION_MAX_LENGTH} characters`),
+        }),
+      )
+      .max(POLL_MAX_OPTIONS),
+  })
+  .superRefine(({ pollOptions }, ctx) => {
+    const seen = new Set<string>()
+    pollOptions.forEach(({ text }, index) => {
+      const key = text.trim().toLowerCase()
+      if (key === "") return
+      if (seen.has(key)) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["pollOptions", index, "text"],
+          message: "This answer is already in the poll",
+        })
+      }
+      seen.add(key)
+    })
+  })
 
 type FormValues = z.infer<typeof schema>
 
@@ -46,14 +80,26 @@ export function QuackForm({ className, defaultMood }: QuackFormProps) {
   const addQuack = useAddQuack()
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { text: "", mood: defaultMood },
+    defaultValues: { text: "", mood: defaultMood, pollOptions: [] },
   })
+  const pollOptions = useFieldArray({ control: form.control, name: "pollOptions" })
+  const hasPoll = pollOptions.fields.length > 0
 
   const text = useWatch({ control: form.control, name: "text" })
   const length = text?.length ?? 0
 
   const handleSubmit = (values: FormValues) => {
-    addQuack.mutate({ text: values.text, mood: values.mood }, { onSuccess: () => form.reset() })
+    addQuack.mutate(
+      {
+        text: values.text,
+        mood: values.mood,
+        poll:
+          values.pollOptions.length > 0
+            ? { options: values.pollOptions.map((option) => option.text) }
+            : undefined,
+      },
+      { onSuccess: () => form.reset() },
+    )
   }
 
   return (
@@ -74,11 +120,11 @@ export function QuackForm({ className, defaultMood }: QuackFormProps) {
           name="text"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>New quack</FormLabel>
+              <FormLabel>{hasPoll ? "Question" : "New quack"}</FormLabel>
               <FormControl>
                 <Textarea
                   rows={3}
-                  placeholder="Quack something..."
+                  placeholder={hasPoll ? "e.g. Where do we go for lunch?" : "Quack something..."}
                   disabled={addQuack.isPending}
                   {...field}
                 />
@@ -88,34 +134,121 @@ export function QuackForm({ className, defaultMood }: QuackFormProps) {
           )}
         />
 
+        {hasPoll ? (
+          <fieldset className="flex flex-col gap-3">
+            <legend className="sr-only">Poll answers</legend>
+            {pollOptions.fields.map((option, index) => (
+              <FormField
+                key={option.id}
+                control={form.control}
+                name={`pollOptions.${index}.text`}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Option {index + 1}</FormLabel>
+                    <div className="flex items-center gap-2">
+                      <FormControl>
+                        <Input
+                          disabled={addQuack.isPending}
+                          {...field}
+                        />
+                      </FormControl>
+                      {index >= POLL_MIN_OPTIONS ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Remove option ${index + 1}`}
+                          disabled={addQuack.isPending}
+                          onClick={() => pollOptions.remove(index)}
+                        >
+                          <X className="size-4" />
+                        </Button>
+                      ) : null}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ))}
+            <div className="flex flex-wrap items-center gap-2">
+              {pollOptions.fields.length < POLL_MAX_OPTIONS ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={addQuack.isPending}
+                  onClick={() => pollOptions.append({ text: "" })}
+                >
+                  <Plus className="size-4" />
+                  Add option
+                </Button>
+              ) : null}
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={addQuack.isPending}
+                onClick={() => {
+                  pollOptions.replace([])
+                  // the button that had focus is gone; keep the keyboard in the form
+                  form.setFocus("text")
+                }}
+              >
+                Remove poll
+              </Button>
+            </div>
+          </fieldset>
+        ) : null}
+
         <div className="flex items-center justify-between gap-3">
-          <FormField
-            control={form.control}
-            name="mood"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <ToggleGroup
-                    type="single"
-                    value={field.value ?? ""}
-                    onValueChange={(val) => field.onChange(val === "" ? undefined : val)}
-                    disabled={addQuack.isPending}
-                  >
-                    {(Object.entries(MOOD_EMOJI) as [QuackMood, string][]).map(([mood, emoji]) => (
-                      <ToggleGroupItem
-                        key={mood}
-                        value={mood}
-                        aria-label={mood}
-                        className="text-base"
-                      >
-                        {emoji}
-                      </ToggleGroupItem>
-                    ))}
-                  </ToggleGroup>
-                </FormControl>
-              </FormItem>
+          <div className="flex items-center gap-2">
+            <FormField
+              control={form.control}
+              name="mood"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <ToggleGroup
+                      type="single"
+                      value={field.value ?? ""}
+                      onValueChange={(val) => field.onChange(val === "" ? undefined : val)}
+                      disabled={addQuack.isPending}
+                    >
+                      {(Object.entries(MOOD_EMOJI) as [QuackMood, string][]).map(
+                        ([mood, emoji]) => (
+                          <ToggleGroupItem
+                            key={mood}
+                            value={mood}
+                            aria-label={mood}
+                            className="text-base"
+                          >
+                            {emoji}
+                          </ToggleGroupItem>
+                        ),
+                      )}
+                    </ToggleGroup>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            {hasPoll ? null : (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={addQuack.isPending}
+                onClick={() =>
+                  pollOptions.append(
+                    Array.from({ length: POLL_MIN_OPTIONS }, () => ({ text: "" })),
+                    { shouldFocus: true, focusIndex: 0 },
+                  )
+                }
+              >
+                <ListChecks className="size-4" />
+                Add poll
+              </Button>
             )}
-          />
+          </div>
 
           <div className="flex items-center gap-3">
             <span
