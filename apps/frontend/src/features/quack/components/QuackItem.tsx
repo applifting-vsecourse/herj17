@@ -1,16 +1,11 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { formatDate } from "@/lib/date"
+import { MOOD_EMOJI } from "@/lib/moods"
 
-import type { Quack, QuackMood } from "@/features/quack/api/quackSchemas"
+import type { Quack } from "@/features/quack/api/quackSchemas"
+import { QuackPoll } from "@/features/quack/components/QuackPoll"
 import { UsersName } from "@/features/quack/components/UsersName"
 import { UsersUserName } from "@/features/quack/components/UsersUserName"
-
-const MOOD_EMOJI: Record<QuackMood, string> = {
-  happy: "😊",
-  sad: "😢",
-  angry: "😠",
-  silly: "🤪",
-}
 
 type QuackItemProps = { quack: Quack }
 
@@ -40,6 +35,14 @@ export function QuackItem({ quack }: QuackItemProps) {
           {quack.mood ? <span aria-label={quack.mood}>{MOOD_EMOJI[quack.mood]}</span> : null}
         </div>
         <p className="text-sm break-words whitespace-pre-line">{quack.text}</p>
+        {quack.poll ? (
+          <div className="mt-2">
+            <QuackPoll
+              quackId={quack.id}
+              poll={quack.poll}
+            />
+          </div>
+        ) : null}
       </div>
     </article>
   )

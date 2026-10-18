@@ -1,3 +1,5 @@
+import { Poll } from '@/modules/quack/domain/poll';
+
 export type QuackAuthor = {
   id: string;
   name: string;
@@ -14,4 +16,5 @@ export type Quack = {
   createdAt: Date;
   updatedAt: Date;
   user?: QuackAuthor;
+  poll?: Poll;
 };

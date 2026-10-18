@@ -24,7 +24,11 @@ export const api = ky.create({
       async ({ error }) => {
         if (!(error instanceof HTTPError)) return error
         try {
-          const body = (await error.response.clone().json()) as { message?: string | string[] }
+          // ky 2 has already read the body into `error.data` by the time this
+          // hook runs, so the response itself can no longer be parsed
+          const body = (error.data ?? (await error.response.clone().json())) as {
+            message?: string | string[]
+          }
           const message = Array.isArray(body.message) ? body.message.join(", ") : body.message
           if (message) error.message = message
         } catch {
