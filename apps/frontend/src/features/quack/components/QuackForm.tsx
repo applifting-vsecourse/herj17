@@ -1,3 +1,4 @@
+import { useImperativeHandle, type Ref } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ListChecks, Loader2, Plus, X } from "lucide-react"
 import { useFieldArray, useForm, useWatch } from "react-hook-form"
@@ -70,13 +71,16 @@ const schema = z
 
 type FormValues = z.infer<typeof schema>
 
+export type QuackFormHandle = { focus: () => void }
+
 type QuackFormProps = {
   className?: string
   // pre-selected mood, from the user's settings
   defaultMood?: QuackMood
+  ref?: Ref<QuackFormHandle>
 }
 
-export function QuackForm({ className, defaultMood }: QuackFormProps) {
+export function QuackForm({ className, defaultMood, ref }: QuackFormProps) {
   const addQuack = useAddQuack()
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -84,6 +88,9 @@ export function QuackForm({ className, defaultMood }: QuackFormProps) {
   })
   const pollOptions = useFieldArray({ control: form.control, name: "pollOptions" })
   const hasPoll = pollOptions.fields.length > 0
+
+  // lets the page send the user to the compose box, e.g. from an empty feed
+  useImperativeHandle(ref, () => ({ focus: () => form.setFocus("text") }), [form])
 
   const text = useWatch({ control: form.control, name: "text" })
   const length = text?.length ?? 0

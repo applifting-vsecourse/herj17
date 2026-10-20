@@ -3,13 +3,18 @@ import { formatDate } from "@/lib/date"
 import { MOOD_EMOJI } from "@/lib/moods"
 
 import type { Quack } from "@/features/quack/api/quackSchemas"
+import { DeleteQuackButton } from "@/features/quack/components/DeleteQuackButton"
 import { QuackPoll } from "@/features/quack/components/QuackPoll"
 import { UsersName } from "@/features/quack/components/UsersName"
 import { UsersUserName } from "@/features/quack/components/UsersUserName"
 
-type QuackItemProps = { quack: Quack }
+type QuackItemProps = {
+  quack: Quack
+  // only the author may delete; the server enforces it regardless
+  canDelete?: boolean
+}
 
-export function QuackItem({ quack }: QuackItemProps) {
+export function QuackItem({ quack, canDelete }: QuackItemProps) {
   const { name, username } = quack.user
 
   const initials = name
@@ -33,6 +38,11 @@ export function QuackItem({ quack }: QuackItemProps) {
           <span className="text-xs text-muted-foreground">·</span>
           <time className="text-xs text-muted-foreground">{formatDate(quack.createdAt)}</time>
           {quack.mood ? <span aria-label={quack.mood}>{MOOD_EMOJI[quack.mood]}</span> : null}
+          {canDelete ? (
+            <div className="ml-auto self-center">
+              <DeleteQuackButton quackId={quack.id} />
+            </div>
+          ) : null}
         </div>
         <p className="text-sm break-words whitespace-pre-line">{quack.text}</p>
         {quack.poll ? (
