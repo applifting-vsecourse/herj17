@@ -10,7 +10,7 @@ import {
   QuackNotOwnedError,
 } from '@/modules/quack/domain/quack';
 import { QuackRepository } from '@/modules/quack/repositories/quack.repository';
-import { Identity } from '@/shared/auth/domain/identity';
+import { Identity, isAdmin } from '@/shared/auth/domain/identity';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
@@ -38,11 +38,13 @@ export class QuacksService {
   async deleteQuack(user: Identity, quackId: string): Promise<void> {
     const authorId = await this.quackRepository.getQuackAuthorId(quackId);
     if (!authorId) throw new QuackNotFoundError(quackId);
-    // the repository scopes the delete to the author too; this gives a clear 403
-    if (authorId !== user.id) throw new QuackNotOwnedError(quackId);
+    // the author may delete their own quack; an admin (moderator) may delete any
+    if (authorId !== user.id && !isAdmin(user)) {
+      throw new QuackNotOwnedError(quackId);
+    }
     const deleted = await this.quackRepository.deleteQuack({
       id: quackId,
-      userId: user.id,
+      userId: authorId,
     });
     // deleted by a concurrent request in the meantime
     if (!deleted) throw new QuackNotFoundError(quackId);

@@ -10,7 +10,7 @@ import { UsersUserName } from "@/features/quack/components/UsersUserName"
 
 type QuackItemProps = {
   quack: Quack
-  // only the author may delete; the server enforces it regardless
+  // the author, or an admin; the server enforces it regardless
   canDelete?: boolean
 }
 
