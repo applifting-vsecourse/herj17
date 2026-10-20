@@ -141,7 +141,7 @@ describe('QuacksService', () => {
       expect(repository.deleteQuack).not.toHaveBeenCalled();
     });
 
-    it("reports a missing quack to an admin too", async () => {
+    it('reports a missing quack to an admin too', async () => {
       const repository = mock<QuackRepository>();
       repository.getQuackAuthorId.mockResolvedValue(null);
 
