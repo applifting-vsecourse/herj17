@@ -3,7 +3,12 @@ import {
   PollNotFoundError,
   PollOptionNotFoundError,
 } from '@/modules/quack/domain/poll';
-import { Quack, QuackMood } from '@/modules/quack/domain/quack';
+import {
+  Quack,
+  QuackMood,
+  QuackNotFoundError,
+  QuackNotOwnedError,
+} from '@/modules/quack/domain/quack';
 import { QuackRepository } from '@/modules/quack/repositories/quack.repository';
 import { Identity } from '@/shared/auth/domain/identity';
 import { Injectable } from '@nestjs/common';
@@ -28,6 +33,19 @@ export class QuacksService {
       // the author is taken from the session, never from the request body
       userId: user.id,
     });
+  }
+
+  async deleteQuack(user: Identity, quackId: string): Promise<void> {
+    const authorId = await this.quackRepository.getQuackAuthorId(quackId);
+    if (!authorId) throw new QuackNotFoundError(quackId);
+    // the repository scopes the delete to the author too; this gives a clear 403
+    if (authorId !== user.id) throw new QuackNotOwnedError(quackId);
+    const deleted = await this.quackRepository.deleteQuack({
+      id: quackId,
+      userId: user.id,
+    });
+    // deleted by a concurrent request in the meantime
+    if (!deleted) throw new QuackNotFoundError(quackId);
   }
 
   async vote(user: Identity, quackId: string, optionId: string): Promise<Poll> {

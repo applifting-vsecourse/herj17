@@ -115,6 +115,24 @@ export class QuackRepository {
     return mapPrismaQuackToDomain(quack);
   }
 
+  async getQuackAuthorId(quackId: string): Promise<string | null> {
+    const quack = await this.prisma.quack.findUnique({
+      where: { id: quackId },
+      select: { userId: true },
+    });
+    return quack?.userId ?? null;
+  }
+
+  // The author is part of the WHERE, so the delete itself is the ownership
+  // check: a quack that isn't the user's is never touched, however requests race.
+  // Returns false when nothing matched.
+  async deleteQuack(quack: { id: string; userId: string }): Promise<boolean> {
+    const { count } = await this.prisma.quack.deleteMany({
+      where: { id: quack.id, userId: quack.userId },
+    });
+    return count > 0;
+  }
+
   async getPollOptionIds(
     quackId: string,
   ): Promise<{ pollId: string; optionIds: string[] } | null> {
