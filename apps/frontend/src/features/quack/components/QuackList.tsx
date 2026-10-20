@@ -15,6 +15,8 @@ type QuackListProps = {
   onReload?: () => void
   // the signed-in user; their own quacks get a Delete action
   viewerId?: string
+  // an admin moderates the feed: every quack gets a Delete action
+  isModerator?: boolean
   // replaces the default empty message when nothing is filtered out
   emptyState?: ReactNode
 }
@@ -26,6 +28,7 @@ export function QuackList({
   isFiltered,
   onReload,
   viewerId,
+  isModerator = false,
   emptyState,
 }: QuackListProps) {
   return (
@@ -76,7 +79,7 @@ export function QuackList({
         <QuackItem
           key={quack.id}
           quack={quack}
-          canDelete={viewerId !== undefined && quack.userId === viewerId}
+          canDelete={isModerator || (viewerId !== undefined && quack.userId === viewerId)}
         />
       ))}
     </div>
