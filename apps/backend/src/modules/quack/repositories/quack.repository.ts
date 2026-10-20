@@ -123,8 +123,8 @@ export class QuackRepository {
     return quack?.userId ?? null;
   }
 
-  // The author is part of the WHERE, so the delete itself is the ownership
-  // check: a quack that isn't the user's is never touched, however requests race.
+  // The author is part of the WHERE, so only the quack whose author the service
+  // checked is ever touched, however requests race.
   // Returns false when nothing matched.
   async deleteQuack(quack: { id: string; userId: string }): Promise<boolean> {
     const { count } = await this.prisma.quack.deleteMany({

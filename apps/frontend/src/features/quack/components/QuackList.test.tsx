@@ -63,6 +63,28 @@ describe("QuackList", () => {
     expect(screen.getAllByRole("button", { name: "Delete quack" })).toHaveLength(1)
   })
 
+  it("offers Delete on every quack to a moderator", () => {
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <QuackList
+          viewerId="admin1"
+          isModerator
+          quacks={[
+            quack(),
+            quack({
+              id: "q2",
+              text: "not mine either",
+              userId: "u2",
+              user: { id: "u2", name: "Other Duck", username: "OtherDuck" },
+            }),
+          ]}
+        />
+      </QueryClientProvider>,
+    )
+
+    expect(screen.getAllByRole("button", { name: "Delete quack" })).toHaveLength(2)
+  })
+
   it("shows a custom empty state when nothing is filtered out", () => {
     render(
       <QuackList
