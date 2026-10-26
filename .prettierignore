@@ -3,6 +3,7 @@ node_modules
 apps
 .eslintcache
 .claude
+.mcp.json
 
 # Prisma client (generated)
 apps/backend/src/generated/
