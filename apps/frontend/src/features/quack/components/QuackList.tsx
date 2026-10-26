@@ -1,3 +1,4 @@
+import type { ReactNode } from "react"
 import { Loader2, RefreshCw } from "lucide-react"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -12,9 +13,21 @@ type QuackListProps = {
   error?: Error
   isFiltered?: boolean
   onReload?: () => void
+  // the signed-in user; their own quacks get a Delete action
+  viewerId?: string
+  // replaces the default empty message when nothing is filtered out
+  emptyState?: ReactNode
 }
 
-export function QuackList({ quacks, isLoading, error, isFiltered, onReload }: QuackListProps) {
+export function QuackList({
+  quacks,
+  isLoading,
+  error,
+  isFiltered,
+  onReload,
+  viewerId,
+  emptyState,
+}: QuackListProps) {
   return (
     <div className="flex flex-col">
       {isLoading && quacks.length === 0 ? (
@@ -46,15 +59,24 @@ export function QuackList({ quacks, isLoading, error, isFiltered, onReload }: Qu
       ) : null}
 
       {!isLoading && !error && quacks.length === 0 ? (
-        <p className="py-8 text-center text-sm text-muted-foreground">
-          {isFiltered ? "No quacks match your search." : "No quacks yet. Post the first one."}
-        </p>
+        isFiltered ? (
+          <p className="py-8 text-center text-sm text-muted-foreground">
+            No quacks match your search.
+          </p>
+        ) : (
+          (emptyState ?? (
+            <p className="py-8 text-center text-sm text-muted-foreground">
+              No quacks yet. Post the first one.
+            </p>
+          ))
+        )
       ) : null}
 
       {quacks.map((quack) => (
         <QuackItem
           key={quack.id}
           quack={quack}
+          canDelete={viewerId !== undefined && quack.userId === viewerId}
         />
       ))}
     </div>
