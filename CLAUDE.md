@@ -36,6 +36,8 @@ Don't reach for the browser to check your own work. Tests and type-checks are th
 
 After finishing a story implementation, always run `pnpm check-all`. Fix every error before stopping — lint, type errors, test failures, and formatting. Do not hand the work back to the user with a failing check-all.
 
+Never ignore `pnpm check-all` failures on any files, even if you did not create them.
+
 ### Invariants live in the database
 
 A rule like "one vote per person" or "a vote belongs to an option of the same poll" is a constraint in `schema.prisma` (primary/unique key, composite foreign key), not just an `if` in the service. The service may pre-check to return a readable 400/409, but the constraint is what keeps the data right when two requests race. Counts are computed from rows (`_count`), never stored and incremented.

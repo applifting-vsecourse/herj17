@@ -33,7 +33,7 @@ export const Route = createFileRoute("/_ProtectedPages/quacks")({
 function QuacksPage() {
   const quacksQuery = useQuery(quacksQueryOptions())
   const defaultMood = useQuery(profileQueryOptions()).data?.defaultMood
-  const viewerId = useSession().user?.id
+  const viewer = useSession().user
   const { feed = "all" } = Route.useSearch()
   const navigate = useNavigate({ from: Route.fullPath })
   const [search, setSearch] = useState("")
@@ -41,7 +41,7 @@ function QuacksPage() {
 
   const allQuacks = quacksQuery.data ?? []
   const feedQuacks =
-    feed === "mine" ? allQuacks.filter((quack) => quack.userId === viewerId) : allQuacks
+    feed === "mine" ? allQuacks.filter((quack) => quack.userId === viewer?.id) : allQuacks
   const needle = search.trim().toLowerCase()
   const visibleQuacks = needle
     ? feedQuacks.filter(
@@ -58,7 +58,8 @@ function QuacksPage() {
       error={quacksQuery.error ?? undefined}
       isFiltered={needle.length > 0}
       onReload={() => void quacksQuery.refetch()}
-      viewerId={viewerId}
+      viewerId={viewer?.id}
+      isModerator={viewer?.role === "admin"}
       emptyState={
         feed === "mine" ? (
           <div className="flex flex-col items-center gap-3 py-8 text-center">
